@@ -1,0 +1,93 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #f4ead8; }
+body { font: 14px/1.4 "Avenir Next", "Segoe UI", system-ui, sans-serif; color: #4a3a2a; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.pill {
+  position: fixed; top: 14px; left: 14px;
+  display: flex; flex-direction: column;
+  padding: 8px 16px; border-radius: 999px;
+  background: #fffaf0; box-shadow: 0 2px 10px rgba(120, 80, 30, .18);
+}
+.pill strong { font-size: 15px; color: #b5532a; letter-spacing: .02em; }
+.pill span { font-size: 11px; color: #8a7360; }
+
+.bar {
+  position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 24px));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px;
+  padding: 10px 14px; border-radius: 16px;
+  background: #fffaf0; box-shadow: 0 2px 14px rgba(120, 80, 30, .2);
+}
+.stat { display: flex; gap: 12px; align-items: center; }
+.stat b { font-variant-numeric: tabular-nums; color: #2f241a; }
+.mode {
+  padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: 12px;
+  background: #e3efd6; color: #3f6a2a;
+}
+.mode.run { background: #fbdcc8; color: #b5532a; }
+.tod { display: flex; gap: 4px; }
+button {
+  font: inherit; font-size: 12px; cursor: pointer;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid #e2cfb4;
+  background: #fff; color: #6a5440;
+}
+button[aria-pressed="true"] { background: #e9895a; border-color: #e9895a; color: #fff; }
+button:focus-visible { outline: 3px solid #3f8fd6; outline-offset: 2px; }
+.hint { margin: 0; width: 100%; text-align: center; font-size: 11px; color: #8a7360; }
+.note { opacity: .8; }
+
+.joy, .run-btn { display: none; }
+@media (pointer: coarse) {
+  .joy {
+    display: block; position: fixed; left: 18px; bottom: 150px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(255, 250, 240, .55); border: 2px solid rgba(181, 83, 42, .35);
+    touch-action: none;
+  }
+  .knob {
+    position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    border-radius: 50%; background: #e9895a; box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  }
+  .run-btn {
+    display: block; position: fixed; right: 18px; bottom: 170px;
+    width: 72px; height: 72px; border-radius: 50%; font-size: 15px; font-weight: 600;
+  }
+  .hint .keys { display: none; }
+}
+
+/* Haze (AQI) controls + organ exposure panel */
+.aqi {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px; align-items: center;
+  padding: 6px 8px; border-radius: 999px;
+  background: #fffaf0; box-shadow: 0 2px 10px rgba(120, 80, 30, .18);
+}
+.aqi-label { font-size: 11px; font-weight: 600; color: #8a7360; padding: 0 4px; }
+.aqi button[data-aqi="100"][aria-pressed="true"] { background: #e8c547; border-color: #e8c547; color: #2f241a; }
+.aqi button[data-aqi="150"][aria-pressed="true"] { background: #e8893a; border-color: #e8893a; }
+.aqi button[data-aqi="200"][aria-pressed="true"] { background: #c8423a; border-color: #c8423a; }
+.organs {
+  position: fixed; top: 70px; right: 14px; width: 230px;
+  padding: 10px 12px; border-radius: 14px;
+  background: #fffaf0; box-shadow: 0 2px 14px rgba(120, 80, 30, .2);
+}
+.organs[hidden] { display: none; }
+.organs h2 { margin: 0 0 4px; font-size: 13px; color: #b5532a; }
+.organs p { margin: 0 0 8px; font-size: 12px; }
+.organs b { font-variant-numeric: tabular-nums; color: #2f241a; }
+.organ-imgs { display: flex; gap: 8px; }
+.organ-imgs figure { margin: 0; flex: 1; text-align: center; font-size: 11px; color: #8a7360; }
+.organ-imgs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; }
+@media (max-width: 640px) {
+  .aqi { top: 64px; }
+  .organs { top: auto; bottom: 150px; right: 10px; width: 160px; }
+}
+/* Haze integration: verdict badge + breathing organs */
+.organs .small { font-size: 11px; color: #8a7360; }
+.verdict { display: inline-block; padding: 2px 8px; border-radius: 6px; font-weight: 700; color: #fff; background: #888; }
+.verdict[data-v="go"] { background: #2e8b57; }
+.verdict[data-v="caution"] { background: #d48a1a; }
+.verdict[data-v="avoid"] { background: #c0392b; }
+.organ-imgs img { transform: scale(var(--pulse, 1)); transition: transform 0.1s linear; }

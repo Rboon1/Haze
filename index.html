@@ -1,226 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>KLSCM 2026 · Haze Edition</title>
-<style>
-  :root{--hi:#d7ff3a;--ink:#101418;--paper:#f4f1e8;--aqi:#e8c547}
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:#8a949c;overflow:hidden;font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;color:var(--paper)}
-  canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
-  .panel{position:fixed;background:rgba(16,20,24,.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:10px 14px}
-  #title{left:16px;top:16px}
-  #title h1{margin:0;font-size:26px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
-  #title h1 b{color:var(--hi)}
-  #title small{display:block;margin-top:4px;opacity:.7;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
-  #stats{display:flex;gap:18px;margin-top:10px}
-  #stats div{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
-  #stats span{text-transform:none;display:block;font-size:26px;font-weight:700;letter-spacing:0;color:var(--hi);font-variant-numeric:tabular-nums}
-  #aqi{left:50%;transform:translateX(-50%);bottom:64px;display:flex;gap:10px;padding:8px}
-  #aqi button{all:unset;cursor:pointer;text-align:center;padding:8px 18px;border-radius:4px;border:2px solid transparent;background:rgba(255,255,255,.07);min-width:120px}
-  #aqi button:hover{background:rgba(255,255,255,.15)}
-  #aqi button.on{border-color:var(--c);background:rgba(255,255,255,.14)}
-  #aqi b{display:block;font-size:34px;line-height:1;color:var(--c)}
-  #aqi i{display:block;font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
-  #aqi em{display:block;font-style:normal;font-size:11px;opacity:.55}
-  #aqi button.sun{min-width:104px;margin-right:4px;border-right:1px solid rgba(255,255,255,.12)}
-  #aqi button.sun b{height:34px;display:grid;place-items:center;color:#ffcf3f}
-  #aqi button.sun svg{display:block}
-  #aqi button.sun.on{border-color:#ffcf3f;background:rgba(255,207,63,.2)}
-  #aqi button.sun.on svg{animation:sunspin 12s linear infinite}
-  @keyframes sunspin{to{transform:rotate(360deg)}}
-  @media (prefers-reduced-motion:reduce){#aqi button.sun.on svg{animation:none}}
-  #ticker{left:50%;transform:translateX(-50%);bottom:12px;max-width:min(860px,92vw);text-align:center;font-size:20px;letter-spacing:.03em;padding:8px 18px;background:var(--hi);color:var(--ink);border:0;font-weight:700;text-transform:uppercase}
-  #side{right:16px;top:16px;width:230px;font-size:13px}
-  #side h3{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
-  #side .row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
-  #side button{all:unset;cursor:pointer;padding:3px 8px;border-radius:3px;background:rgba(255,255,255,.1);font-size:13px}
-  #side button:hover{background:var(--hi);color:var(--ink)}
-  #side button.on{background:var(--hi);color:var(--ink)}
-  #side input[type=range]{width:100%}
-  #map{right:16px;bottom:16px;padding:6px}
-  #map canvas{display:block;width:230px;height:130px}
-  #help{left:16px;bottom:16px;font-size:11px;opacity:.75;line-height:1.5;letter-spacing:.04em}
-  .bubble{position:fixed;left:0;top:0;pointer-events:none;background:#fff;color:#111;font:700 15px/1.15 "Barlow Condensed","Arial Narrow",system-ui,sans-serif;padding:6px 10px;border-radius:12px;max-width:210px;transform:translate(-50%,-100%);opacity:0;transition:opacity .25s;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-  .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;border:7px solid transparent;border-top-color:#fff;border-bottom:0}
-  #hc{left:16px;top:140px;width:330px;font-size:13px;border-left:3px solid var(--c)}
-  #hc.off{display:none}
-  #hc h3{margin:0 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
-  .hc-grid{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}
-  .hc-img{all:unset;cursor:zoom-in;display:block;border-radius:4px;overflow:hidden;background:#000}
-  .hc-img img{display:block;width:120px;height:150px;object-fit:cover;animation:var(--anim) var(--period) ease-in-out infinite;transform-origin:50% 55%}
-  @keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.045)}24%{transform:scale(.99)}34%{transform:scale(1.025)}}
-  @keyframes breathe{0%,100%{transform:scale(1,1)}45%{transform:scale(1.035,1.05)}}
-  .hc-tabs{display:flex;gap:4px;margin-bottom:8px}
-  .hc-tabs button{all:unset;cursor:pointer;padding:3px 12px;border-radius:3px;background:rgba(255,255,255,.1);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
-  .hc-tabs button:hover{background:rgba(255,255,255,.2)}
-  .hc-tabs button.on{background:var(--hi);color:var(--ink)}
-  .hc-tabs.big{margin-bottom:10px}.hc-tabs.big button{font-size:16px;padding:5px 16px}
-  .hc-next{all:unset;cursor:pointer;display:inline-block;margin-top:14px;padding:8px 16px;border-radius:4px;background:var(--hi);color:var(--ink);font-weight:700;font-size:16px;letter-spacing:.04em;text-transform:uppercase}
-  .hc-stats div{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-bottom:6px}
-  .hc-stats span{display:block;font-size:24px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--c);font-variant-numeric:tabular-nums;line-height:1.05}
-  #hc label{display:block;margin-top:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
-  #hc label b{float:right;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
-  #hc input[type=range]{width:100%;accent-color:var(--c)}
-  .hc-note{margin:8px 0 0;font-size:13px;line-height:1.3;opacity:.9}
-  #hcx{position:fixed;inset:0;z-index:8;display:none;place-items:center;background:rgba(8,9,10,.86);backdrop-filter:blur(4px);overflow:auto;padding:16px}
-  #hcx.on{display:grid}
-  .hc-sheet{position:relative;max-width:1200px;width:100%}
-  .hc-sheet h2{margin:0;font-size:34px;letter-spacing:.04em;text-transform:uppercase;line-height:1.05}
-  .hc-sheet h2 b{color:var(--hi)}
-  .hc-sheet .sub{margin:8px 0 16px;font-size:17px;max-width:900px;opacity:.9;line-height:1.3}
-  .hc-close{all:unset;cursor:pointer;position:absolute;right:0;top:0;font-size:22px;padding:4px 10px;border-radius:4px;background:rgba(255,255,255,.1)}
-  .hc-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  .hc-cols figure{margin:0;background:#0d0f11;border-radius:6px;overflow:hidden;border-top:4px solid var(--c)}
-  .hc-cols figure.cur{outline:2px solid var(--c)}
-  .hc-cols img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
-  .hc-cols figcaption{padding:10px 14px 14px}
-  .hc-cols figcaption b{font-size:28px;color:var(--c);line-height:1}
-  .hc-cols figcaption i{display:block;font-style:normal;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
-  .hc-cols .big{font-size:40px;font-weight:700;margin:6px 0 2px;line-height:1}
-  .hc-cols .big small{font-size:15px;font-weight:600;opacity:.8}
-  .hc-cols .row{font-size:14px;opacity:.85}
-  .hc-cols .row span{color:var(--c);font-weight:700}
-  .hc-cols p{margin:8px 0 0;font-size:14px;line-height:1.3;opacity:.9}
-  .hc-sheet .fine{margin:14px 0 0;font-size:12px;line-height:1.4;opacity:.6;max-width:1000px}
-  .hc-sliders{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;max-width:700px;margin:0 0 14px}
-  .hc-sliders label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
-  .hc-sliders label b{float:right;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
-  .hc-sliders input{width:100%;accent-color:var(--hi)}
-  #dock{display:contents}
-  #fab,#fab-body{display:none}
-  #fab button{all:unset;cursor:pointer;padding:9px 14px;border-radius:999px;background:rgba(16,20,24,.8);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--paper);-webkit-tap-highlight-color:transparent}
-  #fab-body{all:unset;cursor:pointer;box-sizing:border-box;text-align:center;padding:12px 14px;border-radius:8px;background:var(--hi);color:var(--ink);font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 4px 14px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
-  #fab-body:active{transform:scale(.98)}
-  #fab button.on{border-color:var(--hi);color:var(--hi)}
-  #fab .fab-l{display:flex;gap:8px}
-  #fab .fab-ic{width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%}
-  #fab .fab-pill{display:flex;align-items:center;gap:6px;height:44px;box-sizing:border-box;padding:0 14px 0 11px}
-  #fab .fab-pill .ic-on-on{display:none}
-  #fab .fab-pill.on{background:var(--hi);color:var(--ink);border-color:transparent}
-  #fab .fab-pill.on .ic-on-off{display:none}#fab .fab-pill.on .ic-on-on{display:block}
-  #intro{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 12px 14px;border-radius:12px;background:rgba(16,20,24,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);transition:opacity .35s,transform .35s}
-  #intro[hidden]{display:none}
-  #intro.out{opacity:0;transform:translateY(8px)}
-  #intro .in-k{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--hi)}
-  #intro b{font-size:18px;letter-spacing:.03em;text-transform:uppercase}
-  #intro b i{font-style:normal;color:var(--hi);font-variant-numeric:tabular-nums}
-  #intro-skip{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.12);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
-  #intro .in-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--hi);transform-origin:left;animation:inbar 3s linear forwards}
-  @keyframes inbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-  body.intro #fab-body,body.intro #ticker{opacity:.35;transition:opacity .4s}
-  #fab .cam-car{display:flex;align-items:stretch;border-radius:999px;background:rgba(16,20,24,.8);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);overflow:hidden;touch-action:pan-y}
-  #fab .cam-car button{padding:0 12px;border:0;border-radius:0;background:transparent;backdrop-filter:none;font-size:24px;font-weight:400;line-height:1}
-  #fab .cam-car button:active{background:rgba(255,255,255,.12)}
-  .cam-lbl{width:118px;overflow:hidden;text-align:center;padding:5px 0 4px;cursor:pointer;user-select:none}
-  .cam-lbl small{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
-  .cam-lbl span{display:block;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--hi)}
-  .cam-lbl span.from-r{animation:camR .28s ease-out}
-  .cam-lbl span.from-l{animation:camL .28s ease-out}
-  @keyframes camR{from{transform:translateX(70%);opacity:0}to{transform:none;opacity:1}}
-  @keyframes camL{from{transform:translateX(-70%);opacity:0}to{transform:none;opacity:1}}
-  .cam-dots{display:flex;justify-content:center;gap:4px;margin-top:3px}
-  .cam-dots b{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .2s,width .2s}
-  .cam-dots b.on{width:12px;border-radius:3px;background:var(--hi)}
-  #calc{position:fixed;inset:0;z-index:9;display:none;place-items:center;grid-template-columns:minmax(0,1fr);background:rgba(8,9,10,.88);backdrop-filter:blur(4px);overflow:auto;padding:16px}
-  #calc.on{display:grid}
-  .cc-sheet{position:relative;width:100%;max-width:560px;min-width:0;background:#121518;border:1px solid rgba(255,255,255,.12);border-top:4px solid var(--c);border-radius:8px;padding:18px 20px 16px}
-  .cc-sheet h2{margin:0;font-size:30px;letter-spacing:.04em;text-transform:uppercase;line-height:1.05;padding-right:44px}
-  .cc-sheet h2 b{color:var(--hi)}
-  .cc-lede{margin:6px 0 12px;font-size:15px;opacity:.85;line-height:1.3}
-  .cc-sheet section{margin:0 0 12px}
-  .cc-sheet h4{margin:0 0 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.8;display:flex;justify-content:space-between}
-  .cc-sheet h4 span{letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;opacity:.9}
-  .cc-aqi{display:flex;gap:12px;align-items:center}
-  .cc-aqi input[type=number]{all:unset;box-sizing:border-box;width:92px;padding:6px 10px;border-radius:6px;background:#0b0d0f;border:2px solid var(--c);font-size:30px;font-weight:700;color:var(--c);text-align:center;font-variant-numeric:tabular-nums}
-  .cc-aqi input[type=range]{flex:1;min-width:0}
-  .cc-sheet input[type=range]{width:100%;accent-color:var(--c)}
-  .cc-cat{margin-top:6px;font-size:14px;opacity:.9}
-  .cc-cat b{color:var(--c)}
-  .cc-chips{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-  .cc-chips button{all:unset;cursor:pointer;flex:1;text-align:center;min-width:64px;padding:7px 6px;border-radius:5px;background:rgba(255,255,255,.08);font-size:14px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
-  .cc-chips button.on{background:var(--hi);color:var(--ink)}
-  .cc-result{margin:4px 0 12px;padding:12px 14px;border-radius:6px;background:#0b0d0f;border-left:4px solid var(--c)}
-  .cc-big{display:flex;align-items:baseline;gap:10px}
-  .cc-big b{font-size:54px;line-height:1;color:var(--c);font-variant-numeric:tabular-nums}
-  .cc-big span{font-size:15px;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
-  .cc-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
-  .cc-facts b{display:block;font-size:20px;letter-spacing:0;text-transform:none;color:var(--paper);font-variant-numeric:tabular-nums}
-  .cc-result p{margin:10px 0 0;font-size:15px;line-height:1.3}
-  .cc-actions{display:flex;gap:8px;flex-wrap:wrap}
-  .cc-actions button{all:unset;cursor:pointer;flex:1;min-width:150px;text-align:center;padding:10px 12px;border-radius:5px;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-  .cc-actions .cc-share{background:var(--hi);color:var(--ink)}
-  .cc-actions .cc-vis{background:rgba(255,255,255,.1)}
-  .cc-sheet .fine{margin:12px 0 0;font-size:11px;line-height:1.4;opacity:.55}
-  .hc-calc{all:unset;cursor:pointer;display:block;margin-top:10px;text-align:center;padding:7px;border-radius:4px;background:var(--hi);color:var(--ink);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:13px}
-  @media(max-width:800px){#calc{padding:calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom));place-items:start stretch}.cc-sheet{padding:14px 14px 12px}.cc-sheet h2{font-size:24px}.cc-big b{font-size:46px}}
-  #loading{position:fixed;inset:0;display:grid;place-items:center;background:#20262b;color:var(--hi);font-size:28px;letter-spacing:.2em;text-transform:uppercase;z-index:9}
-  @media(max-width:800px){
-    #side,#map,#help,#hc{display:none}
-    #dock{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:4;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-    #dock>*{pointer-events:auto;position:static;transform:none;max-width:none}
-    #map.show{display:block;align-self:flex-start;padding:4px}
-    #map canvas{width:184px;height:104px}
-    #fab{display:flex;justify-content:space-between;align-items:center;gap:8px}
-    #fab-body{display:block}
-    #title{left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));padding:8px 12px}
-    #title h1{font-size:19px}
-    #title small{font-size:9px;letter-spacing:.08em}
-    #stats{gap:14px;margin-top:6px}
-    #stats div{font-size:9px}
-    #stats span{font-size:18px}
-    #aqi{gap:6px;padding:6px}
-    #aqi button{min-width:0;flex:1;padding:6px 4px}
-    #aqi b{font-size:24px}
-    #aqi i{font-size:10px}
-    #aqi em{display:none}
-    #aqi button.sun{min-width:0;flex:.8;margin-right:0}
-    #aqi button.sun b{height:24px}
-    #aqi button.sun svg{width:22px;height:22px}
-    #ticker{font-size:12px;line-height:1.25;padding:7px 10px;background:rgba(16,20,24,.72);color:var(--hi);border:1px solid rgba(215,255,58,.25);font-weight:600;text-transform:none;letter-spacing:.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-    .bubble{font-size:13px;max-width:160px}
-    #hcx{padding:calc(12px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));place-items:start stretch}
-    #hcx{grid-template-columns:minmax(0,1fr)}
-    .hc-sheet{padding:0 14px;min-width:0;max-width:100vw}
-    .hc-sheet h2{font-size:22px;padding-right:44px}
-    .hc-sheet .sub{font-size:14px;margin-bottom:10px}
-    .hc-sliders{grid-template-columns:1fr;gap:4px}
-    .hc-cols{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -14px;padding:0 14px 6px;scrollbar-width:none}
-    .hc-cols::-webkit-scrollbar{display:none}
-    .hc-cols figure{flex:0 0 80vw;scroll-snap-align:center}
-    .hc-cols .big{font-size:32px}
-    .hc-cols p{font-size:13px}
-    .hc-next{font-size:13px;padding:8px 12px}
-  }
-</style>
-  <script type="module" crossorigin src="/assets/index-BEj8RI2h.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>KLCC Park Walk</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="loading">Inhaling route…</div>
-<div class="panel" id="title">
-  <h1>KLSCM <b>2026</b> · Haze Edition</h1>
-  <small>Kuala Lumpur Standard Chartered Marathon · unofficial parody · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit">map data © OpenStreetMap contributors</a></small>
-  <div id="stats"><div>Distance<span id="km">0.0</span></div><div>Race clock<span id="clock">0:00:00</span></div><div>PM2.5<span id="pm">—</span></div></div>
-</div>
-<div class="panel" id="side">
-  <h3>Camera <span style="opacity:.5">(C)</span></h3><div class="row" id="cams"></div>
-  <h3>Speed</h3><input id="speed" type="range" min="0" max="8" step="0.1" value="3"><div id="speedv" style="margin:2px 0 10px;opacity:.8"></div>
-  <h3>Jump to</h3><div class="row" id="jumps"></div>
-  <div class="row"><button id="demo">▶ Auto demo (D)</button><button id="labels">Labels (L)</button><button id="pause">Pause (Space)</button></div>
-</div>
-<div class="panel" id="hc"></div>
-<div id="dock">
-<div id="intro" hidden role="status"><div class="in-t"><span class="in-k">Touring KLCC</span><b>Race starts in <i id="intro-n">3</i></b></div><button id="intro-skip">Skip ›</button><span class="in-bar"></span></div>
-<div class="panel" id="map"><canvas id="mapc" width="460" height="260"></canvas></div>
-<div id="fab"><div class="fab-l"><button id="fab-map" class="fab-ic" aria-label="Show map" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button><button id="fab-klcc" class="fab-pill" aria-pressed="false" aria-label="Orbit KLCC"><svg class="ic-on-off" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M7 1.5 7.6 5H8l.5 3h.3l.4 4h.3l.3 10.5H4.7L5 12h.3l.4-4h.3L6.4 5h.4zM17 1.5l.6 3.5h.4l.5 3h.3l.4 4h.3l.3 10.5h-4.5L15 12h.3l.4-4h.3l.4-3h.4zM9.3 11h5.4v1.2H9.3z"/></svg><svg class="ic-on-on" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="14.5" cy="4" r="2.2"/><path d="m10.6 8.2 3.3-1.1c.9-.3 1.8.1 2.2.9l1.4 3 2.6 1-.7 1.8-3.4-1.3-.9-1.8-1.2 3.6 2.6 2.2-.6 5.5h-2l.5-4.5-3-2.4-1.4 3.6-4.6 1.8-.8-1.8 3.8-1.5 2-5.4-1.3.5-1.3 2.6-1.8-.9 1.7-3.4z"/></svg><span>KLCC</span></button></div><div id="fab-cam" class="cam-car" role="group" aria-label="Camera view"><button class="cam-prev" aria-label="Previous camera view">‹</button><div class="cam-lbl" aria-live="polite"><small>Camera</small><span></span><i class="cam-dots"></i></div><button class="cam-next" aria-label="Next camera view">›</button></div></div>
-<button id="fab-body">Calculate your cigarettes</button>
-<div class="panel" id="ticker">Loading sarcasm…</div>
-<div class="panel" id="aqi"></div>
-</div>
-<div id="calc"></div>
-<div id="hcx"></div>
-<div class="panel" id="help">1 / 2 / 3 — AQI 100 / 150 / 200 &nbsp;·&nbsp; H body panel &nbsp;·&nbsp; drag in Free cam to orbit</div>
+  <canvas id="scene" aria-label="3D scene: a person walking in KLCC Park with the twin towers behind"></canvas>
+
+  <header class="pill">
+    <strong>KLCC Park Walk</strong>
+    <span>Kuala Lumpur · Taman KLCC</span>
+  </header>
+
+  <section class="bar" aria-label="Status and settings">
+    <div class="stat" aria-live="polite">
+      <span id="mode" class="mode">Walk</span>
+      <span><b id="dist">0.00</b> km</span>
+      <span><b id="steps">0</b> steps</span>
+    </div>
+    <div class="tod" role="group" aria-label="Time of day">
+      <button type="button" data-tod="morning" aria-pressed="false">Morning</button>
+      <button type="button" data-tod="noon" aria-pressed="true">Noon</button>
+      <button type="button" data-tod="sunset" aria-pressed="false">Sunset</button>
+      <button type="button" data-tod="night" aria-pressed="false">Night</button>
+    </div>
+    <p class="hint">WASD / arrows to move · Shift to run · <span class="note">Original scene. Stylized, not to scale.</span></p>
+  </section>
+
+  <section class="aqi" role="group" aria-label="Haze level (AQI)">
+    <span class="aqi-label">Haze</span>
+    <button type="button" data-aqi="0" aria-pressed="true">Sunny</button>
+    <button type="button" data-aqi="100" aria-pressed="false">AQI 100</button>
+    <button type="button" data-aqi="150" aria-pressed="false">AQI 150</button>
+    <button type="button" data-aqi="200" aria-pressed="false">AQI 200</button>
+  </section>
+
+  <aside id="organs" class="organs" aria-live="polite" hidden>
+    <h2>Your exposure</h2>
+    <p class="verdict-row"><span id="verdict" class="verdict">--</span> <span id="aqiNote">Moderate</span></p>
+    <p><b id="pm">0</b> µg PM2.5 inhaled · ≈ <b id="cigs">0</b> cigarettes</p>
+    <p class="small"><span id="breath">Resting</span> · demo 60× speed</p>
+    <p class="small" id="reason"></p>
+    <div class="organ-imgs">
+      <figure><img id="lungsImg" src="./lungs/lungs_100.jpg" alt="Lungs exposed to haze" /><figcaption>Lungs</figcaption></figure>
+      <figure><img id="heartImg" src="./heart/heart_100.jpg" alt="Heart exposed to haze" /><figcaption>Heart</figcaption></figure>
+    </div>
+  </aside>
+
+  <div id="joy" class="joy" aria-hidden="true"><div class="knob"></div></div>
+  <button id="runBtn" class="run-btn" type="button" aria-pressed="false">Run</button>
+
+  <script type="module" src="./main.js"></script>
 </body>
 </html>

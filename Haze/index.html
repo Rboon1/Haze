@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Educational prototype: live air quality, 3D lungs, and a haze check for the KLCC Park running track." />
+    <title>Haze &amp; Your Lungs · KLCC Park run check</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <h1>Haze &amp; Your Lungs</h1>
+      <p>See what the air does when you breathe harder, and whether to run at KLCC Park today.</p>
+    </header>
+
+    <div class="notice" role="note">
+      <strong>Educational only, not medical advice.</strong>
+      Figures are rough estimates from modelled air quality. If you have asthma, a heart or lung condition, or feel unwell, ask a doctor.
+    </div>
+
+    <main id="main" class="layout">
+      <section class="stage" aria-labelledby="stage-title">
+        <h2 id="stage-title" class="sr-only">3D lungs</h2>
+        <div id="scene" role="img" aria-label="Interactive 3D human figure with breathing lungs" aria-describedby="scene-desc"></div>
+        <p id="scene-desc" class="sr-only"></p>
+        <div class="stage-overlay">
+          <p class="stage-condition"><span class="label">Lungs</span> <span id="condition-label">Loading…</span></p>
+          <p class="stage-cig"><span id="day-cig">--</span> <span class="label">cigarettes/day equivalent at this level</span></p>
+        </div>
+        <p class="hint">Drag to rotate · scroll to zoom · illustrative model, not a diagnosis</p>
+      </section>
+
+      <div class="panels">
+        <section class="card" aria-labelledby="loc-title">
+          <h2 id="loc-title">Location</h2>
+          <p class="current-place">Showing: <strong id="place-name">Kuala Lumpur</strong></p>
+          <div class="row">
+            <button type="button" id="btn-locate" class="btn">Use my location</button>
+            <button type="button" id="btn-refresh" class="btn btn-ghost">Refresh</button>
+          </div>
+          <form id="search-form" class="row" role="search">
+            <label for="search-input" class="sr-only">Search a place in Malaysia</label>
+            <input id="search-input" type="search" placeholder="Search a place in Malaysia" maxlength="80" autocomplete="off" />
+            <button type="submit" class="btn">Search</button>
+          </form>
+          <p id="search-status" class="status" role="status"></p>
+          <ul id="search-results" class="results"></ul>
+          <div id="preset-chips" class="chips" aria-label="Quick picks"></div>
+        </section>
+
+        <section class="card" aria-labelledby="aq-title">
+          <h2 id="aq-title">Air quality now</h2>
+          <div id="aq-live" aria-live="polite">
+            <p id="aq-message" class="message" hidden></p>
+            <div id="aq-body" hidden>
+              <div class="aqi-row">
+                <div class="aqi-number" id="aqi-number">--</div>
+                <div>
+                  <p class="aqi-cat" id="aqi-category">--</p>
+                  <p class="muted">US AQI (24-hour particulate average)</p>
+                </div>
+              </div>
+              <p id="aqi-summary"></p>
+              <dl class="facts">
+                <div><dt>Main pollutant</dt><dd id="main-pollutant">--</dd></div>
+                <div><dt>PM2.5 now</dt><dd id="pm25-now">--</dd></div>
+                <div><dt>PM10 now</dt><dd id="pm10-now">--</dd></div>
+              </dl>
+              <p class="muted" id="aq-source"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="breath-title">
+          <h2 id="breath-title">Breathing level</h2>
+          <fieldset class="segmented">
+            <legend class="sr-only">Breathing level</legend>
+            <div id="activity-options"></div>
+          </fieldset>
+          <label for="minutes" class="range-label">Time outdoors: <strong id="minutes-label">30 min</strong></label>
+          <input id="minutes" type="range" min="5" max="120" step="5" value="30" />
+          <dl class="facts" id="breath-facts">
+            <div><dt>Breathing</dt><dd id="facts-breath">--</dd></div>
+            <div><dt>PM2.5 breathed in</dt><dd id="facts-dose">--</dd></div>
+            <div><dt>Cigarette equivalent</dt><dd id="facts-cig">--</dd></div>
+          </dl>
+          <h3>Same air, different effort (per hour)</h3>
+          <div id="activity-bars" class="bars"></div>
+        </section>
+
+        <section class="card" aria-labelledby="cmp-title">
+          <h2 id="cmp-title">Compare locations</h2>
+          <p class="muted" id="cmp-note">Uses the breathing level and time above. Lower is better.</p>
+          <div id="compare-table" class="table-wrap"></div>
+        </section>
+
+        <section class="card" aria-labelledby="route-title">
+          <h2 id="route-title">Run check: KLCC Park track</h2>
+          <p class="muted" id="route-meta"></p>
+          <div class="row grid2">
+            <label>Laps
+              <select id="laps">
+                <option value="1">1 lap</option><option value="2">2 laps</option><option value="3">3 laps</option>
+                <option value="4">4 laps</option><option value="5">5 laps</option>
+              </select>
+            </label>
+            <label>Pace (min/km)
+              <input id="pace" type="number" min="3" max="15" step="0.25" value="6.5" inputmode="decimal" />
+            </label>
+          </div>
+          <div id="route-message" class="message" hidden></div>
+          <div id="route-body" hidden>
+            <p class="verdict" id="route-verdict" role="status">--</p>
+            <ul id="route-reasons" class="reasons"></ul>
+            <dl class="facts">
+              <div><dt>Distance</dt><dd id="route-distance">--</dd></div>
+              <div><dt>Estimated finish</dt><dd id="route-time">--</dd></div>
+              <div><dt>Breathing level</dt><dd id="route-level">--</dd></div>
+              <div><dt>PM2.5 breathed in</dt><dd id="route-dose">--</dd></div>
+              <div><dt>Cigarette equivalent</dt><dd id="route-cig">--</dd></div>
+            </dl>
+            <p id="route-window" class="muted"></p>
+          </div>
+          <p class="muted" id="route-sources"></p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <details>
+        <summary>How these numbers work</summary>
+        <ul>
+          <li><strong>Data:</strong> <a href="https://open-meteo.com/en/docs/air-quality-api" rel="noopener">Open-Meteo Air Quality API</a> (CC BY 4.0, non-commercial use). Values are modelled on a grid, not readings from a monitoring station, and may differ from Malaysia's Department of Environment API (IPU) readings.</li>
+          <li><strong>Scale:</strong> US AQI categories, not Malaysia's API scale. Particulate AQI uses a 24-hour average, so it can stay high after the air clears. PM2.5 "now" is the current hourly value.</li>
+          <li><strong>Dose:</strong> PM2.5 (µg/m³) × breathing rate × time. Assumed adult breathing: resting 7.5, walking 20, jogging 40, running 60 litres/min. This is air breathed in, not what stays in the lungs.</li>
+          <li><strong>Cigarettes:</strong> popular rule of thumb that about 22 µg/m³ of PM2.5 over 24 hours equals one cigarette. It is a rough comparison, not a medical measure.</li>
+          <li><strong>Run verdict:</strong> go at PM2.5 ≤ 15 µg/m³ (WHO 24-hour guideline), caution up to 35 (US EPA 24-hour standard), avoid above. Raised one level when the 24-hour US AQI is 151 or higher.</li>
+          <li><strong>Privacy:</strong> your location is used only in your browser and sent to Open-Meteo to fetch air quality. Nothing is stored.</li>
+        </ul>
+      </details>
+      <p>Educational prototype. Not medical advice.</p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
