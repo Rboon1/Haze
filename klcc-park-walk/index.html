@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>KLCC Park Walk</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="3D scene: a person walking in KLCC Park with the twin towers behind"></canvas>
+
+  <header class="pill">
+    <strong>KLCC Park Walk</strong>
+    <span>Kuala Lumpur · Taman KLCC</span>
+  </header>
+
+  <section class="bar" aria-label="Status and settings">
+    <div class="stat" aria-live="polite">
+      <span id="mode" class="mode">Walk</span>
+      <span><b id="dist">0.00</b> km</span>
+      <span><b id="steps">0</b> steps</span>
+    </div>
+    <div class="tod" role="group" aria-label="Time of day">
+      <button type="button" data-tod="morning" aria-pressed="false">Morning</button>
+      <button type="button" data-tod="noon" aria-pressed="true">Noon</button>
+      <button type="button" data-tod="sunset" aria-pressed="false">Sunset</button>
+      <button type="button" data-tod="night" aria-pressed="false">Night</button>
+    </div>
+    <p class="hint">WASD / arrows to move · Shift to run · <span class="note">Original scene. Stylized, not to scale.</span></p>
+  </section>
+
+  <section class="aqi" role="group" aria-label="Haze level (AQI)">
+    <span class="aqi-label">Haze</span>
+    <button type="button" data-aqi="0" aria-pressed="true">Sunny</button>
+    <button type="button" data-aqi="100" aria-pressed="false">AQI 100</button>
+    <button type="button" data-aqi="150" aria-pressed="false">AQI 150</button>
+    <button type="button" data-aqi="200" aria-pressed="false">AQI 200</button>
+  </section>
+
+  <aside id="organs" class="organs" aria-live="polite" hidden>
+    <h2>Your exposure</h2>
+    <p><b id="pm">0</b> µg PM2.5 inhaled · <span id="aqiNote">Moderate</span></p>
+    <div class="organ-imgs">
+      <figure><img id="lungsImg" src="./lungs/lungs_100.jpg" alt="Lungs exposed to haze" /><figcaption>Lungs</figcaption></figure>
+      <figure><img id="heartImg" src="./heart/heart_100.jpg" alt="Heart exposed to haze" /><figcaption>Heart</figcaption></figure>
+    </div>
+  </aside>
+
+  <div id="joy" class="joy" aria-hidden="true"><div class="knob"></div></div>
+  <button id="runBtn" class="run-btn" type="button" aria-pressed="false">Run</button>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
