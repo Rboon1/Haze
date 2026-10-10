@@ -147,6 +147,7 @@ export class LungScene {
   private readonly clock = new THREE.Clock();
   private readonly resizeObserver: ResizeObserver;
   private frame = 0;
+  private paused = false;
   private phase = 0;
   private input: SceneInput;
   private colourSeverity = -1;
@@ -198,6 +199,19 @@ export class LungScene {
     this.resize();
     this.applyColours(initial.severity);
     this.loop();
+  }
+
+  /** Stop rendering while another view is shown, and resume without a time jump. */
+  setPaused(paused: boolean): void {
+    if (paused === this.paused) return;
+    this.paused = paused;
+    if (paused) {
+      cancelAnimationFrame(this.frame);
+    } else {
+      this.clock.getDelta();
+      this.resize();
+      this.loop();
+    }
   }
 
   update(input: SceneInput): void {

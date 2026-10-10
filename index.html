@@ -20,15 +20,64 @@
     </div>
 
     <main id="main" class="layout">
-      <section class="stage" aria-labelledby="stage-title">
-        <h2 id="stage-title" class="sr-only">3D lungs</h2>
-        <div id="scene" role="img" aria-label="Interactive 3D human figure with breathing lungs" aria-describedby="scene-desc"></div>
-        <p id="scene-desc" class="sr-only"></p>
-        <div class="stage-overlay">
-          <p class="stage-condition"><span class="label">Lungs</span> <span id="condition-label">Loading…</span></p>
-          <p class="stage-cig"><span id="day-cig">--</span> <span class="label">cigarettes/day equivalent at this level</span></p>
+      <section class="stage" aria-label="3D views">
+        <div class="stage-tabs" role="tablist" aria-label="Choose a 3D view">
+          <button type="button" role="tab" id="tab-lungs" class="stage-tab" aria-selected="true" aria-controls="lungs-view">Lungs</button>
+          <button type="button" role="tab" id="tab-park" class="stage-tab" aria-selected="false" aria-controls="park-view" tabindex="-1">Park walk</button>
         </div>
-        <p class="hint">Drag to rotate · scroll to zoom · illustrative model, not a diagnosis</p>
+
+        <div id="lungs-view" class="stage-view" role="tabpanel" aria-labelledby="tab-lungs">
+          <div id="scene" role="img" aria-label="Interactive 3D human figure with breathing lungs" aria-describedby="scene-desc"></div>
+          <p id="scene-desc" class="sr-only"></p>
+          <div class="stage-overlay">
+            <p class="stage-condition"><span class="label">Lungs</span> <span id="condition-label">Loading…</span></p>
+            <p class="stage-cig"><span id="day-cig">--</span> <span class="label">cigarettes/day equivalent at this level</span></p>
+          </div>
+          <p class="hint">Drag to rotate · scroll to zoom · illustrative model, not a diagnosis</p>
+        </div>
+
+        <div id="park-view" class="stage-view" role="tabpanel" aria-labelledby="tab-park" hidden>
+          <div
+            id="park-scene"
+            class="park-scene"
+            tabindex="0"
+            role="group"
+            aria-label="Park walk scene. Focus here, then use W A S D or the arrow keys to walk. Hold Shift to run."
+          ></div>
+          <p id="park-message" class="message" hidden></p>
+          <div class="park-hud">
+            <p class="park-title"><strong>KLCC Park walk</strong> <span class="label">stylised, not to scale</span></p>
+            <p class="park-line">
+              <span id="park-mode" class="mode">Resting</span>
+              <span><b id="park-dist">0</b> m</span>
+              <span><b id="park-steps">0</b> steps</span>
+            </p>
+            <p class="park-line" id="park-dose-line">
+              <span><b id="park-dose">0</b> µg PM2.5 breathed in</span>
+              <span>≈ <b id="park-cig">0</b> cigarettes</span>
+            </p>
+            <p class="park-line"><span id="park-verdict" class="verdict-pill unknown">--</span> <span id="park-air" class="label"></span></p>
+          </div>
+          <div class="park-controls">
+            <div class="tod" role="group" aria-label="Time of day">
+              <button type="button" data-tod="morning" aria-pressed="false">Morning</button>
+              <button type="button" data-tod="noon" aria-pressed="true">Noon</button>
+              <button type="button" data-tod="sunset" aria-pressed="false">Sunset</button>
+              <button type="button" data-tod="night" aria-pressed="false">Night</button>
+            </div>
+            <button type="button" id="park-run" aria-pressed="false">Run</button>
+            <button type="button" id="park-reset">Reset</button>
+          </div>
+          <aside id="park-organs" class="park-organs" aria-label="Illustrative organ exposure" hidden>
+            <h3>Your exposure</h3>
+            <div class="organ-imgs">
+              <figure><img id="park-lungs-img" alt="" width="1200" height="1500" /><figcaption>Lungs</figcaption></figure>
+              <figure><img id="park-heart-img" alt="" width="1200" height="1500" /><figcaption>Heart</figcaption></figure>
+            </div>
+            <p class="label" id="park-organs-note"></p>
+          </aside>
+          <p class="hint">W A S D / arrows to walk · Shift to run · haze follows the live air quality · illustrative, not a diagnosis</p>
+        </div>
       </section>
 
       <div class="panels">

@@ -13,6 +13,8 @@ import {
 import { GeoError, getBrowserLocation, locationPermissionGranted, searchPlaces } from './lib/geo';
 import { categoryForAqi, mainPollutant, POLLUTANT_LABELS, severityForAqi } from './lib/health';
 import type { Place } from './lib/places';
+import type { ParkScene, ParkStats } from './scene/park';
+import { isTimeOfDay, organTier, type TimeOfDay } from './lib/walk';
 import { AGE_RANGE, MINUTES_RANGE, loadPlan, sanitizePlan, savePlan, type Plan } from './lib/plan';
 import { bestWindow, recommend } from './lib/recommend';
 import { DEFAULT_SPOT_ID, SPOTS, getSpot, spotStates, type Spot } from './lib/spots';
@@ -415,6 +417,139 @@ function renderAll(): void {
   renderSpots();
   renderRoute();
   updateScene();
+  syncPark();
+}
+
+// ---------- Park walk (loaded on first open) ----------
+type View = 'lungs' | 'park';
+let view: View = 'lungs';
+let park: ParkScene | null = null;
+let parkLoading = false;
+let parkTod: TimeOfDay = 'noon';
+
+function onParkStats(stats: ParkStats): void {
+  $('park-mode').textContent = stats.moving ? stats.activity.label : 'Resting';
+  $('park-mode').classList.toggle('run', stats.running && stats.moving);
+  $('park-dist').textContent = stats.distance.toFixed(0);
+  $('park-steps').textContent = String(stats.steps);
+  $('park-dose').textContent = formatDose(stats.inhaledUg);
+  $('park-cig').textContent = formatCigarettes(cigaretteEquivalent(stats.inhaledUg));
+}
+
+/** Push the live air quality and plan into the park, and update the verdict and organ images. */
+function syncPark(): void {
+  const result = selectedResult();
+  const aq = result && 'aq' in result ? result.aq : null;
+  park?.setAir(aq ? aq.usAqi : null, aq ? aq.pm25 : null);
+  park?.setPlannedActivity(state.plan.activity);
+
+  const verdict = $('park-verdict');
+  const air = $('park-air');
+  const organs = $('park-organs');
+  if (!aq) {
+    verdict.className = 'verdict-pill unknown';
+    verdict.textContent = result ? 'No data' : 'Loading…';
+    air.textContent = result ? 'Air quality unavailable: no haze or dose is shown.' : '';
+    organs.hidden = true;
+    return;
+  }
+  const rec = recommend({ pm25: aq.pm25, usAqi: aq.usAqi, activity: planActivity(), sensitive: state.plan.sensitive });
+  verdict.className = `verdict-pill ${rec.verdict}`;
+  verdict.textContent = rec.title;
+  air.textContent = `${selectedName()} · US AQI ${Math.round(aq.usAqi)} · PM2.5 ${aq.pm25.toFixed(0)} \u00b5g/m\u00b3`;
+
+  const tier = organTier(aq.usAqi);
+  if (tier === null) {
+    organs.hidden = true;
+  } else {
+    const base = import.meta.env.BASE_URL;
+    $<HTMLImageElement>('park-lungs-img').src = `${base}organs/lungs-${tier}.jpg`;
+    $<HTMLImageElement>('park-heart-img').src = `${base}organs/heart-${tier}.jpg`;
+    $('park-organs-note').textContent = `Illustrative render for haze around US AQI ${tier}. Not a scan of your body.`;
+    organs.hidden = false;
+  }
+}
+
+async function ensurePark(): Promise<void> {
+  if (park || parkLoading) return;
+  parkLoading = true;
+  const message = $('park-message');
+  try {
+    const { ParkScene: ParkSceneClass } = await import('./scene/park');
+    const instance = new ParkSceneClass($('park-scene'), onParkStats);
+    instance.setTimeOfDay(parkTod);
+    park = instance;
+    message.hidden = true;
+    syncPark();
+    if (view === 'park') {
+      instance.setActive(true);
+      instance.focus();
+    }
+  } catch {
+    message.hidden = false;
+    message.className = 'message';
+    message.textContent = 'The park walk could not start. Your browser may not support WebGL.';
+  } finally {
+    parkLoading = false;
+  }
+}
+
+function setView(next: View): void {
+  view = next;
+  const isPark = next === 'park';
+  for (const [id, selected] of [['tab-lungs', !isPark], ['tab-park', isPark]] as const) {
+    const tab = $(id);
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  }
+  $('lungs-view').hidden = isPark;
+  $('park-view').hidden = !isPark;
+  scene.setPaused(isPark);
+  if (isPark) {
+    void ensurePark();
+    park?.setActive(true);
+    park?.focus();
+  } else {
+    park?.setActive(false);
+  }
+}
+
+function wireTabs(): void {
+  const lungs = $('tab-lungs');
+  const parkTab = $('tab-park');
+  lungs.addEventListener('click', () => setView('lungs'));
+  parkTab.addEventListener('click', () => setView('park'));
+  // Arrow keys move between tabs, as in the WAI-ARIA tabs pattern.
+  for (const tab of [lungs, parkTab]) {
+    tab.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const target = tab === lungs ? parkTab : lungs;
+      setView(target === parkTab ? 'park' : 'lungs');
+      target.focus();
+    });
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-tod]')) {
+    button.addEventListener('click', () => {
+      const value = button.dataset['tod'];
+      if (!isTimeOfDay(value)) return;
+      parkTod = value;
+      park?.setTimeOfDay(value);
+      for (const b of document.querySelectorAll<HTMLButtonElement>('[data-tod]')) {
+        b.setAttribute('aria-pressed', String(b === button));
+      }
+    });
+  }
+  const run = $<HTMLButtonElement>('park-run');
+  run.addEventListener('click', () => {
+    const on = run.getAttribute('aria-pressed') !== 'true';
+    run.setAttribute('aria-pressed', String(on));
+    park?.setRunToggle(on);
+  });
+  $('park-reset').addEventListener('click', () => {
+    park?.resetWalk();
+    park?.focus();
+  });
 }
 
 // ---------- Data loading ----------
@@ -530,6 +665,7 @@ async function runSearch(event: Event): Promise<void> {
 // ---------- Wiring ----------
 buildEffortOptions();
 buildStateFilter();
+wireTabs();
 
 $('btn-locate').addEventListener('click', () => void useMyLocation());
 $('btn-refresh').addEventListener('click', () => void refreshAll());

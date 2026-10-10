@@ -54,7 +54,7 @@ a { color: var(--accent); }
 .stage {
   position: sticky; top: 12px; background: linear-gradient(180deg, #121a33, #0e1427);
   border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
-  height: min(86vh, 820px);
+  height: clamp(480px, calc(100vh - 215px), 820px);
 }
 #scene { position: absolute; inset: 0; touch-action: none; }
 .stage-overlay { position: absolute; left: 16px; top: 14px; right: 16px; pointer-events: none; display: grid; gap: 6px; }
@@ -205,4 +205,70 @@ tr.best td:first-child::after { content: ' ★ best'; color: #4ade80; font-weigh
   .spot-btn { grid-template-columns: 46px 1fr; }
   .spot-dose { grid-column: 2; text-align: left; grid-auto-flow: column; justify-content: start; gap: 8px; }
   .segmented > div { gap: 3px; }
+}
+
+/* ---------- stage tabs + park walk ---------- */
+.stage-tabs { position: absolute; top: 10px; right: 10px; z-index: 5; display: flex; gap: 4px; }
+.stage-tab {
+  background: rgba(19, 26, 46, 0.85); color: var(--text); border: 1px solid var(--border); border-radius: 999px;
+  padding: 6px 12px; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; min-height: 36px;
+}
+.stage-tab[aria-selected='true'] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.stage-view { position: absolute; inset: 0; }
+.stage-view[hidden] { display: none; }
+.stage-overlay { right: 150px; }
+
+.park-scene { position: absolute; inset: 0; outline-offset: -3px; touch-action: none; }
+.park-scene:focus-visible { outline: 3px solid #ffd166; }
+.park-canvas { display: block; }
+#park-view .message { position: absolute; left: 12px; right: 12px; top: 56px; z-index: 4; }
+
+.park-hud {
+  position: absolute; left: 12px; top: 12px; z-index: 3; max-width: calc(100% - 250px);
+  display: grid; gap: 4px; padding: 8px 12px; border-radius: 12px;
+  background: rgba(11, 16, 32, 0.78); border: 1px solid var(--border); pointer-events: none; font-size: 0.85rem;
+}
+.park-title { font-size: 0.95rem; }
+.park-line { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; overflow-wrap: anywhere; }
+.park-hud b { font-variant-numeric: tabular-nums; }
+.mode { padding: 1px 10px; border-radius: 999px; font-weight: 700; font-size: 0.78rem; background: #e3efd6; color: #1e3a12; }
+.mode.run { background: #fbdcc8; color: #6b2a0e; }
+
+.park-controls {
+  position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 3; width: max-content; max-width: calc(100% - 20px);
+  display: flex; flex-wrap: wrap; gap: 6px 10px; justify-content: center; align-items: center;
+  padding: 8px 10px; border-radius: 14px; background: rgba(11, 16, 32, 0.78); border: 1px solid var(--border);
+}
+.park-controls .tod { display: flex; gap: 4px; flex-wrap: wrap; }
+.park-controls button {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 999px;
+  padding: 5px 11px; font: inherit; font-size: 0.82rem; cursor: pointer; min-height: 34px;
+}
+.park-controls button[aria-pressed='true'] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+.park-organs {
+  position: absolute; right: 10px; top: 54px; z-index: 3; width: 200px; padding: 8px 10px; border-radius: 12px;
+  background: rgba(11, 16, 32, 0.85); border: 1px solid var(--border); display: grid; gap: 6px;
+}
+.park-organs[hidden] { display: none; }
+.park-organs h3 { margin: 0; font-size: 0.85rem; color: var(--text); }
+.organ-imgs { display: flex; gap: 6px; }
+.organ-imgs figure { margin: 0; flex: 1; text-align: center; font-size: 0.72rem; color: var(--muted); }
+.organ-imgs img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 8px; display: block; background: #222; }
+
+/* On-screen joystick (touch or mouse) */
+.joy {
+  position: absolute; left: 14px; bottom: 90px; z-index: 3; width: 104px; height: 104px; border-radius: 50%;
+  background: rgba(255, 250, 240, 0.18); border: 2px solid rgba(255, 255, 255, 0.35); touch-action: none; display: none;
+}
+.joy .knob {
+  position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px;
+  border-radius: 50%; background: #e9895a; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+@media (pointer: coarse), (max-width: 900px) { .joy { display: block; } }
+
+@media (max-width: 520px) {
+  .park-organs { width: 150px; top: auto; bottom: 120px; right: 8px; }
+  .stage-overlay { right: 10px; top: 52px; }
+  .park-hud { top: 52px; max-width: calc(100% - 24px); }
 }

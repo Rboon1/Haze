@@ -16,6 +16,17 @@ npm run build
 
 No API key or backend is needed. Air quality comes from the [Open-Meteo Air Quality API](https://open-meteo.com/en/docs/air-quality-api) (CC BY 4.0, free for non-commercial use).
 
+## Park walk (interactive 3D)
+
+The **Park walk** tab next to **Lungs** is an interactive stylised KLCC Park with the Petronas Twin Towers behind you. It was ported from Louis's `klcc-park-walk` demo (branches `develop` / `klcc-park-walk`) into this app as TypeScript.
+
+- **Controls:** W A S D or arrow keys to walk, hold Shift (or the Run button) to run. Keys only work while the scene has focus, so typing in the search box never moves the walker. On touch screens there is an on-screen joystick.
+- **Live haze:** fog, drifting dust and the organ images follow the selected place's live US AQI. If air quality is unavailable the park shows clear sky and no dose, never a made-up value.
+- **Dose while you move:** PM2.5 breathed in uses the same zone model as the rest of the app: idle is Rest, walking is Walk, and running uses the effort zone from "Your plan". The demo counts **1 real second as 1 simulated minute** so the numbers visibly move.
+- **Time of day:** morning, noon, sunset, night.
+- **Not to scale:** distances are stylised world units. The scene is procedural and uses no external 3D assets. It loads only when you open the tab.
+- **Organ images:** `public/organs/*.jpg` are Blender renders from Louis's branch, shown as illustrations for roughly AQI 100, 150 and 200. They are not scans of your body. Confirm you have the right to use them before publishing the site.
+
 ## What it does and does not do
 
 - **Data is modelled, not a station reading.** Open-Meteo returns CAMS model values on a grid. It is not Malaysia's DOE API/IPU feed and can differ from it. The UI says so. Readings older than 3 hours are shown as unavailable, never as stale numbers.
@@ -29,9 +40,11 @@ No API key or backend is needed. Air quality comes from the [Open-Meteo Air Qual
 ## Layout
 
 ```
-src/lib/      aq (fetch + validation), dose, health, recommend, geo, places, format
-src/scene/    lungs.ts (three.js scene)
+src/lib/      aq (fetch + validation), dose, health, recommend, geo, places, spots, plan, walk, format
+src/scene/    lungs.ts (3D lungs), park.ts (interactive park walk, lazy-loaded)
+src/ui/       dom helpers, Leaflet map, on-screen joystick
 src/main.ts   UI wiring
+public/organs illustrative organ renders for the park walk
 tests/        unit tests for the logic above
 ```
 
