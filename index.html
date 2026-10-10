@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Educational prototype: live air quality, 3D lungs, and a haze check for the KLCC Park running track." />
-    <title>Haze &amp; Your Lungs · KLCC Park run check</title>
+    <meta name="description" content="Educational prototype: is the haze too bad for your walk or run? Live air quality, 3D lungs, effort zones and Malaysian running spots." />
+    <title>Haze &amp; Your Lungs · Can I run today?</title>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
 
     <header class="site-header">
       <h1>Haze &amp; Your Lungs</h1>
-      <p>See what the air does when you breathe harder, and whether to run at KLCC Park today.</p>
+      <p>Is the haze too bad for your walk or run? See what the air does when you breathe harder, and pick a cleaner spot.</p>
     </header>
 
     <div class="notice" role="note">
@@ -34,19 +34,18 @@
       <div class="panels">
         <section class="card" aria-labelledby="loc-title">
           <h2 id="loc-title">Location</h2>
-          <p class="current-place">Showing: <strong id="place-name">Kuala Lumpur</strong></p>
+          <p class="current-place">Showing: <strong id="place-name">KLCC Park Jogging Track</strong></p>
           <div class="row">
             <button type="button" id="btn-locate" class="btn">Use my location</button>
             <button type="button" id="btn-refresh" class="btn btn-ghost">Refresh</button>
           </div>
           <form id="search-form" class="row" role="search">
             <label for="search-input" class="sr-only">Search a place in Malaysia</label>
-            <input id="search-input" type="search" placeholder="Search a place in Malaysia" maxlength="80" autocomplete="off" />
+            <input id="search-input" type="search" placeholder="Search any place in Malaysia" maxlength="80" autocomplete="off" />
             <button type="submit" class="btn">Search</button>
           </form>
           <p id="search-status" class="status" role="status"></p>
           <ul id="search-results" class="results"></ul>
-          <div id="preset-chips" class="chips" aria-label="Quick picks"></div>
         </section>
 
         <section class="card" aria-labelledby="aq-title">
@@ -72,38 +71,54 @@
           </div>
         </section>
 
-        <section class="card" aria-labelledby="breath-title">
-          <h2 id="breath-title">Breathing level</h2>
+        <section class="card" aria-labelledby="plan-title">
+          <h2 id="plan-title">Your plan</h2>
           <fieldset class="segmented">
-            <legend class="sr-only">Breathing level</legend>
-            <div id="activity-options"></div>
+            <legend>How hard will you go?</legend>
+            <div id="effort-options"></div>
           </fieldset>
-          <label for="minutes" class="range-label">Time outdoors: <strong id="minutes-label">30 min</strong></label>
-          <input id="minutes" type="range" min="5" max="120" step="5" value="30" />
-          <dl class="facts" id="breath-facts">
-            <div><dt>Breathing</dt><dd id="facts-breath">--</dd></div>
+          <p id="effort-desc" class="muted"></p>
+          <label for="minutes" class="range-label">Time outdoors: <strong id="minutes-label">45 min</strong></label>
+          <input id="minutes" type="range" min="5" max="180" step="5" value="45" />
+          <div class="row grid2">
+            <label>Age
+              <input id="age" type="number" min="10" max="90" step="1" value="30" inputmode="numeric" />
+            </label>
+            <label class="check">
+              <input id="sensitive" type="checkbox" />
+              <span>Asthma, heart or lung condition (stricter advice)</span>
+            </label>
+          </div>
+          <dl class="facts" id="plan-facts">
+            <div><dt>Heart rate</dt><dd id="facts-hr">--</dd></div>
+            <div><dt>Air per minute</dt><dd id="facts-air">--</dd></div>
+            <div><dt>Breathing</dt><dd id="facts-mode">--</dd></div>
             <div><dt>PM2.5 breathed in</dt><dd id="facts-dose">--</dd></div>
+            <div><dt>Estimated to stay in lungs</dt><dd id="facts-retained">--</dd></div>
             <div><dt>Cigarette equivalent</dt><dd id="facts-cig">--</dd></div>
           </dl>
+          <p id="facts-sitting" class="muted"></p>
           <h3>Same air, different effort (per hour)</h3>
           <div id="activity-bars" class="bars"></div>
         </section>
 
-        <section class="card" aria-labelledby="cmp-title">
-          <h2 id="cmp-title">Compare locations</h2>
-          <p class="muted" id="cmp-note">Uses the breathing level and time above. Lower is better.</p>
-          <div id="compare-table" class="table-wrap"></div>
+        <section class="card" aria-labelledby="spots-title">
+          <h2 id="spots-title">Running spots, cleanest first</h2>
+          <div id="map" class="map" role="region" aria-label="Map of running spots coloured by air quality. The list below has the same information."></div>
+          <label class="filter">State
+            <select id="state-filter"></select>
+          </label>
+          <p id="spots-message" class="message" hidden></p>
+          <ul id="spot-list" class="spot-list"></ul>
+          <p class="muted">Sorted by US AQI, then PM2.5. Each row uses your plan above. Spot locations are approximate starting points.</p>
         </section>
 
         <section class="card" aria-labelledby="route-title">
-          <h2 id="route-title">Run check: KLCC Park track</h2>
+          <h2 id="route-title">Route estimate</h2>
           <p class="muted" id="route-meta"></p>
           <div class="row grid2">
-            <label>Laps
-              <select id="laps">
-                <option value="1">1 lap</option><option value="2">2 laps</option><option value="3">3 laps</option>
-                <option value="4">4 laps</option><option value="5">5 laps</option>
-              </select>
+            <label>Distance (km)
+              <input id="distance" type="number" min="0.5" max="42" step="0.1" value="1.3" inputmode="decimal" />
             </label>
             <label>Pace (min/km)
               <input id="pace" type="number" min="3" max="15" step="0.25" value="6.5" inputmode="decimal" />
@@ -112,17 +127,18 @@
           <div id="route-message" class="message" hidden></div>
           <div id="route-body" hidden>
             <p class="verdict" id="route-verdict" role="status">--</p>
+            <p class="verdict-title" id="route-title-text"></p>
             <ul id="route-reasons" class="reasons"></ul>
             <dl class="facts">
               <div><dt>Distance</dt><dd id="route-distance">--</dd></div>
               <div><dt>Estimated finish</dt><dd id="route-time">--</dd></div>
               <div><dt>Breathing level</dt><dd id="route-level">--</dd></div>
               <div><dt>PM2.5 breathed in</dt><dd id="route-dose">--</dd></div>
+              <div><dt>Estimated to stay in lungs</dt><dd id="route-retained">--</dd></div>
               <div><dt>Cigarette equivalent</dt><dd id="route-cig">--</dd></div>
             </dl>
             <p id="route-window" class="muted"></p>
           </div>
-          <p class="muted" id="route-sources"></p>
         </section>
       </div>
     </main>
@@ -131,12 +147,15 @@
       <details>
         <summary>How these numbers work</summary>
         <ul>
-          <li><strong>Data:</strong> <a href="https://open-meteo.com/en/docs/air-quality-api" rel="noopener">Open-Meteo Air Quality API</a> (CC BY 4.0, non-commercial use). Values are modelled on a grid, not readings from a monitoring station, and may differ from Malaysia's Department of Environment API (IPU) readings.</li>
+          <li><strong>Data:</strong> <a href="https://open-meteo.com/en/docs/air-quality-api" rel="noopener">Open-Meteo Air Quality API</a> (CC BY 4.0, non-commercial use). Values are modelled on a grid of roughly 11 km, not readings from a monitoring station, so nearby spots often share a value. They may differ from Malaysia's Department of Environment API (IPU) readings.</li>
           <li><strong>Scale:</strong> US AQI categories, not Malaysia's API scale. Particulate AQI uses a 24-hour average, so it can stay high after the air clears. PM2.5 "now" is the current hourly value.</li>
-          <li><strong>Dose:</strong> PM2.5 (µg/m³) × breathing rate × time. Assumed adult breathing: resting 7.5, walking 20, jogging 40, running 60 litres/min. This is air breathed in, not what stays in the lungs.</li>
-          <li><strong>Cigarettes:</strong> popular rule of thumb that about 22 µg/m³ of PM2.5 over 24 hours equals one cigarette. It is a rough comparison, not a medical measure.</li>
-          <li><strong>Run verdict:</strong> go at PM2.5 ≤ 15 µg/m³ (WHO 24-hour guideline), caution up to 35 (US EPA 24-hour standard), avoid above. Raised one level when the 24-hour US AQI is 151 or higher.</li>
-          <li><strong>Privacy:</strong> your location is used only in your browser and sent to Open-Meteo to fetch air quality. Nothing is stored.</li>
+          <li><strong>Effort zones:</strong> heart rate zones use HRmax = 208 − 0.7 × age. Air breathed per minute rises from about 7 litres resting to about 120 in Zone 5, and people switch to mouth breathing at roughly 35 litres a minute. These are population averages, not your body.</li>
+          <li><strong>Dose:</strong> PM2.5 (µg/m³) × air breathed. "Estimated to stay in lungs" applies an assumed share (20% at rest, rising to 45% in Zone 5). The direction is supported by research, but the exact percentages are assumptions, not measurements.</li>
+          <li><strong>Cigarettes:</strong> popular rule of thumb that about 22 µg/m³ of PM2.5 over 24 hours equals one cigarette, applied to air breathed in. It is a rough comparison, not a medical measure.</li>
+          <li><strong>Advice:</strong> the highest suggested zone depends on the US AQI (stricter if you tick the health box). It is combined with current PM2.5: go at ≤ 15 µg/m³ (WHO 24-hour guideline), caution up to 35 (US EPA 24-hour standard), avoid above. The stricter result wins. Running pace is converted to a breathing level by speed, which varies a lot with fitness.</li>
+          <li><strong>Distances:</strong> marked "sourced" only where a public source we checked agrees. Others are typical lengths we have not verified.</li>
+          <li><strong>Privacy:</strong> your location is used in your browser and sent to Open-Meteo to fetch air quality. Your plan is saved only in this browser. Nothing is sent to us.</li>
+          <li><strong>Map:</strong> © OpenStreetMap contributors.</li>
         </ul>
       </details>
       <p>Educational prototype. Not medical advice.</p>

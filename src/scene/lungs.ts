@@ -276,7 +276,8 @@ export class LungScene {
     // Smooth 0..1 inflation; inhaling while sin(phase) > 0.
     const inflation = (1 - Math.cos(this.phase)) / 2;
     const inhaleFlow = Math.max(0, Math.sin(this.phase));
-    const depth = (0.035 + (activity.litresPerMinute / 60) * 0.1) * (1 - 0.3 * severity) * (reducedMotion ? 0.4 : 1);
+    const depth =
+      Math.min(0.14, 0.035 + (activity.litresPerMinute / 60) * 0.06) * (1 - 0.3 * severity) * (reducedMotion ? 0.4 : 1);
     for (const lung of this.lungs) {
       lung.group.scale.set(1 + depth * 0.6 * inflation, 1 + depth * inflation, 1 + depth * 0.9 * inflation);
     }

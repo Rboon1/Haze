@@ -1,0 +1,144 @@
+# Global Kiro permissions (user scope). Deny beats ask beats allow, across all scopes.
+#
+# INSTALL (manual by design: Kiro blocks agents from writing ~/.kiro/settings/):
+#   mkdir -p ~/.kiro/settings
+#   cp /Users/rogerboon/Developer/Kiro/manual-setup/permissions.yaml ~/.kiro/settings/permissions.yaml
+# If ~/.kiro/settings/permissions.yaml already exists, merge the rules lists instead of overwriting.
+# Afterwards you can delete the manual-setup folder.
+
+rules:
+  # ---------------- ALLOW: read-only and local validation ----------------
+  - capability: fs_read
+    match: ["~/.kiro/steering/**", "~/.kiro/skills/**"]
+    effect: allow
+
+  - capability: shell
+    match:
+      - "npm test*"
+      - "npm run test*"
+      - "npm run lint*"
+      - "npm run typecheck*"
+      - "pytest*"
+      - "python -m pytest*"
+      - "python3 -m pytest*"
+      - "ruff check*"
+      - "ruff format --check*"
+      - "mypy*"
+      - "go test*"
+      - "go vet*"
+      - "cargo test*"
+      - "cargo clippy*"
+      - "cargo fmt --check*"
+    effect: allow
+
+  - capability: web_search
+    effect: allow
+
+  # Documentation sites only. Other URLs ask. (URL glob syntax for web_fetch is not
+  # spelled out in the docs; if a rule does not match, Kiro simply asks.)
+  - capability: web_fetch
+    match:
+      - "https://kiro.dev/*"
+      - "https://owasp.org/*"
+      - "https://cheatsheetseries.owasp.org/*"
+      - "https://developer.mozilla.org/*"
+      - "https://docs.github.com/*"
+      - "https://docs.python.org/*"
+      - "https://nodejs.org/*"
+      - "https://playwright.dev/*"
+    effect: allow
+
+  # ---------------- ASK: needs your approval each time ----------------
+  # Installing dependencies
+  - capability: shell
+    match:
+      - "npm install*"
+      - "npm i *"
+      - "npm add*"
+      - "pnpm add*"
+      - "pnpm install*"
+      - "yarn add*"
+      - "pip install*"
+      - "pip3 install*"
+      - "uv add*"
+      - "poetry add*"
+      - "cargo add*"
+      - "go get*"
+    effect: ask
+
+  # Migrations, destructive-but-sometimes-legit SQL, releases, deploys, pushes, infra changes
+  - capability: shell
+    match:
+      - "*migrate*"
+      - "*TRUNCATE*"
+      - "*truncate table*"
+      - "git push*"
+      - "git reset --hard*"
+      - "git clean*"
+      - "gh pr merge*"
+      - "gh release*"
+      - "gh workflow*"
+      - "npm publish*"
+      - "docker push*"
+      - "terraform apply*"
+      - "terraform plan*"
+      - "kubectl apply*"
+      - "*deploy*"
+    effect: ask
+
+  # Schema, CI/CD and infrastructure files
+  - capability: fs_write
+    match:
+      - "**/migrations/**"
+      - "**/*.sql"
+      - "**/prisma/schema.prisma"
+      - ".github/**"
+      - ".gitlab-ci.yml"
+      - "Jenkinsfile"
+      - "**/Dockerfile*"
+      - "**/docker-compose*.yml"
+      - "**/*.tf"
+      - "infra/**"
+      - "deploy/**"
+      - "k8s/**"
+    effect: ask
+
+  # ---------------- DENY: never from an agent ----------------
+  # Secrets: no reading or writing credential files (templates are excluded)
+  - capability: fs_read
+    match: ["**/.env", "**/.env.*", "**/*.pem", "**/*.key", "**/id_rsa*", "**/id_ed25519*", "**/.aws/credentials", "**/.netrc", "~/.ssh/**"]
+    exclude: ["**/.env.example", "**/.env.sample", "**/.env.template"]
+    effect: deny
+
+  - capability: fs_write
+    match: ["**/.env", "**/.env.*", "**/*.pem", "**/*.key", "**/id_rsa*", "**/id_ed25519*", "**/.aws/credentials", "**/.netrc", "~/.ssh/**"]
+    exclude: ["**/.env.example", "**/.env.sample", "**/.env.template"]
+    effect: deny
+
+  # Destructive and privileged commands
+  - capability: shell
+    match:
+      - "sudo *"
+      - "rm -rf /*"
+      - "rm -rf ~*"
+      - "git push*--force*"
+      - "git push* -f*"
+      - "*DROP DATABASE*"
+      - "*drop database*"
+      - "*DROP SCHEMA*"
+      - "*drop schema*"
+      - "dropdb*"
+      - "terraform destroy*"
+      - "pulumi destroy*"
+      - "cdk destroy*"
+      - "kubectl delete*"
+      - "helm uninstall*"
+      - "docker system prune*"
+      - "docker volume rm*"
+      - "docker volume prune*"
+      - "aws * delete-*"
+      - "aws * terminate-*"
+      - "printenv*"
+      - "env"
+    exclude: ["git push*--force-with-lease*"]
+    effect: deny

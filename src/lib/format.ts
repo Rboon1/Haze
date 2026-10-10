@@ -49,3 +49,10 @@ export function formatCigarettes(value: number): string {
   if (value >= 1) return value.toFixed(1);
   return value.toFixed(2);
 }
+
+/** Hours as a friendly string: "40 min", "2.5 h", "14 h". */
+export function formatHoursEquivalent(hours: number): string {
+  if (!Number.isFinite(hours) || hours < 0) return '--';
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))} min`;
+  return `${hours.toFixed(hours < 10 ? 1 : 0)} h`;
+}

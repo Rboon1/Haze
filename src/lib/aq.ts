@@ -123,13 +123,23 @@ export function parseAirQuality(json: unknown, now: number = Date.now()): AirQua
   };
 }
 
-export function buildAirQualityUrl(lat: number, lon: number): string {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+export interface Coord {
+  readonly lat: number;
+  readonly lon: number;
+}
+
+function validCoord({ lat, lon }: Coord): boolean {
+  return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+}
+
+/** One request for several locations. Open-Meteo accepts comma-separated coordinates. */
+export function buildBatchUrl(coords: readonly Coord[]): string {
+  if (coords.length === 0 || !coords.every(validCoord)) {
     throw new AirQualityError('invalid', 'That location is not valid.');
   }
   const params = new URLSearchParams({
-    latitude: lat.toFixed(4),
-    longitude: lon.toFixed(4),
+    latitude: coords.map((c) => c.lat.toFixed(4)).join(','),
+    longitude: coords.map((c) => c.lon.toFixed(4)).join(','),
     current: CURRENT_VARS.join(','),
     hourly: 'pm2_5',
     forecast_hours: '24',
@@ -138,12 +148,36 @@ export function buildAirQualityUrl(lat: number, lon: number): string {
   return `${ENDPOINT}?${params.toString()}`;
 }
 
-export async function fetchAirQuality(
-  lat: number,
-  lon: number,
-  options: { signal?: AbortSignal; fetchImpl?: typeof fetch; now?: number } = {},
-): Promise<AirQuality> {
-  const url = buildAirQualityUrl(lat, lon);
+export function buildAirQualityUrl(lat: number, lon: number): string {
+  return buildBatchUrl([{ lat, lon }]);
+}
+
+/**
+ * Parse a multi-location response. A single location comes back as an object, several as an array.
+ * A bad entry becomes an AirQualityError in its slot, so one failing spot never hides the others.
+ */
+export function parseBatch(json: unknown, count: number, now: number = Date.now()): (AirQuality | AirQualityError)[] {
+  const items: unknown[] = Array.isArray(json) ? json : [json];
+  if (items.length !== count) {
+    throw new AirQualityError('invalid', 'The air quality response did not match the request.');
+  }
+  return items.map((item) => {
+    try {
+      return parseAirQuality(item, now);
+    } catch (error) {
+      if (error instanceof AirQualityError) return error;
+      throw error;
+    }
+  });
+}
+
+interface RequestOptions {
+  signal?: AbortSignal;
+  fetchImpl?: typeof fetch;
+  now?: number;
+}
+
+async function requestJson(url: string, options: RequestOptions): Promise<unknown> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
   const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
@@ -157,11 +191,30 @@ export async function fetchAirQuality(
   if (!response.ok) {
     throw new AirQualityError('network', `The air quality service responded with an error (${response.status}).`);
   }
-  let body: unknown;
   try {
-    body = await response.json();
+    return await response.json();
   } catch {
     throw new AirQualityError('invalid', 'The air quality response could not be read.');
   }
-  return parseAirQuality(body, options.now ?? Date.now());
+}
+
+/** Fetch many locations in one request. Throws only if the whole request fails. */
+export async function fetchAirQualityBatch(
+  coords: readonly Coord[],
+  options: RequestOptions = {},
+): Promise<(AirQuality | AirQualityError)[]> {
+  const body = await requestJson(buildBatchUrl(coords), options);
+  return parseBatch(body, coords.length, options.now ?? Date.now());
+}
+
+export async function fetchAirQuality(
+  lat: number,
+  lon: number,
+  options: RequestOptions = {},
+): Promise<AirQuality> {
+  const [result] = await fetchAirQualityBatch([{ lat, lon }], options);
+  if (result === undefined || result instanceof AirQualityError) {
+    throw result ?? new AirQualityError('invalid', 'No air quality reading is available for this location right now.');
+  }
+  return result;
 }
